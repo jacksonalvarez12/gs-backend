@@ -1,4 +1,4 @@
-import { debug, error, info } from 'firebase-functions/logger';
+import {debug, error, info} from 'firebase-functions/logger';
 
 export class LogService {
     private fn: string;
