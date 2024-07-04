@@ -37,11 +37,12 @@ export class FirestoreService {
         const data: T = rst.data() as T;
 
         if (!includeTimestamps) {
-            if ((data as any)['created']) {
-                delete (data as any)['created'];
+            if ((data as Record<string, unknown>)['created']) {
+                delete (data as Record<string, unknown>)['created'];
             }
-            delete (data as any)['created'];
-            delete (data as any)['lastUpdated'];
+            if ((data as Record<string, unknown>)['lastUpdated']) {
+                delete (data as Record<string, unknown>)['lastUpdated'];
+            }
         }
 
         this.logger.debug(

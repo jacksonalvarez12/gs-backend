@@ -1,7 +1,7 @@
 import {firestore} from 'firebase-admin';
 import {onCall} from 'firebase-functions/v2/https';
 import {paths} from './constants';
-import {FirestoreService} from './services/firestore-service.ts/firestore-service';
+import {FirestoreService} from './services/firestore-service/firestore-service';
 import {LogService} from './services/log-service/log-service';
 import {DBUser} from './types/db-user';
 import {
