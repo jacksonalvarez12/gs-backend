@@ -3,19 +3,24 @@ import {onCall} from 'firebase-functions/v2/https';
 import {paths} from './constants';
 import {FirestoreService} from './services/firestore-service.ts/firestore-service';
 import {LogService} from './services/log-service/log-service';
+import {DBUser} from './types/db-user';
 import {
     CreateAccountReq,
     createAccountReqSchema,
+    CreateAccountRes,
     DefaultRes,
 } from './types/function-requests';
-import {User} from './types/user';
 
 export const createAccount = onCall(
     {memory: '256MiB', timeoutSeconds: 30},
-    async ({auth, data}): Promise<DefaultRes> => {
+    async ({auth, data}): Promise<CreateAccountRes> => {
         try {
             const logger: LogService = new LogService('createAccount');
             logger.info('Starting createAccount function');
+
+            const firestoreService: FirestoreService = new FirestoreService(
+                logger
+            );
 
             if (!auth) {
                 const errorMsg: string = 'No auth object in createAccount';
@@ -40,20 +45,40 @@ export const createAccount = onCall(
             const {email, displayName} = schemaValue as CreateAccountReq;
             const uid: string = auth.uid;
 
+            const userCollectionRef: firestore.CollectionReference<
+                firestore.DocumentData,
+                firestore.DocumentData
+            > = firestore().collection(paths.userCollection);
+
+            try {
+                // Check if there's already a user with this uid
+                const currentDoc: DBUser = await firestoreService.read<DBUser>(
+                    userCollectionRef,
+                    uid
+                );
+
+                if (currentDoc) {
+                    const errorMsg: string = `User with uid ${uid} already exists`;
+
+                    logger.error(errorMsg);
+                    return {errorMsg, user: currentDoc};
+                }
+            } catch (_e) {
+                logger.debug(
+                    `No user exists with uid ${uid}, creating new one now...`
+                );
+            }
+
             // Write user to firestore
-            const user: User = {
+            const user: DBUser = {
                 uid,
                 displayName,
                 email,
             };
 
-            await new FirestoreService(logger).set(
-                firestore().collection(paths.userCollection),
-                uid,
-                user
-            );
+            await firestoreService.set(userCollectionRef, uid, user);
 
-            return {};
+            return {user};
         } catch (err) {
             return {
                 errorMsg: `Unexpected error in createAccount function, error: ${JSON.stringify(

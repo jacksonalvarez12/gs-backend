@@ -1,4 +1,5 @@
 import Joi = require('joi');
+import {DBUser} from './db-user';
 
 export type DefaultRes = {
     errorMsg?: string;
@@ -14,3 +15,8 @@ export const createAccountReqSchema = Joi.object({
     displayName: Joi.string().required(),
     email: Joi.string().email().required(),
 }).required();
+
+export type CreateAccountRes = {
+    user?: DBUser;
+    errorMsg?: string;
+};

@@ -24,6 +24,35 @@ export class FirestoreService {
         );
     }
 
+    async read<T>(
+        collection: CollectionReference,
+        documentId: string,
+        includeTimestamps?: boolean
+    ): Promise<T> {
+        const rst: FirebaseFirestore.DocumentSnapshot<
+            FirebaseFirestore.DocumentData,
+            FirebaseFirestore.DocumentData
+        > = await collection.doc(documentId).get();
+
+        const data: T = rst.data() as T;
+
+        if (!includeTimestamps) {
+            if ((data as any)['created']) {
+                delete (data as any)['created'];
+            }
+            delete (data as any)['created'];
+            delete (data as any)['lastUpdated'];
+        }
+
+        this.logger.debug(
+            `Read document ${documentId} in collection ${
+                collection.path
+            }, document data: ${JSON.stringify(data, null, 2)}`
+        );
+
+        return data;
+    }
+
     async delete(
         collection: CollectionReference,
         documentId: string
