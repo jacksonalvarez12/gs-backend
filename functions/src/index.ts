@@ -1,4 +1,5 @@
 import {firestore} from 'firebase-admin';
+import {initializeApp} from 'firebase-admin/app';
 import {onCall} from 'firebase-functions/v2/https';
 import {paths} from './constants';
 import {FirestoreService} from './services/firestore-service/firestore-service';
@@ -6,10 +7,12 @@ import {LogService} from './services/log-service/log-service';
 import {DBUser} from './types/db-user';
 import {
     CreateAccountReq,
-    createAccountReqSchema,
     CreateAccountRes,
     DefaultRes,
+    createAccountReqSchema,
 } from './types/function-requests';
+
+initializeApp();
 
 export const createAccount = onCall(
     {memory: '256MiB', timeoutSeconds: 30},
