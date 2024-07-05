@@ -1,90 +1,51 @@
-import {firestore} from 'firebase-admin';
 import {initializeApp} from 'firebase-admin/app';
+import {user} from 'firebase-functions/v1/auth';
 import {onCall} from 'firebase-functions/v2/https';
-import {paths} from './constants';
-import {FirestoreService} from './services/firestore-service/firestore-service';
-import {LogService} from './services/log-service/log-service';
-import {DBUser} from './types/db-user';
+import {CreateAccountHandler} from './handlers/create-account-handler';
+import {DeleteAccountHandler} from './handlers/delete-account-handler';
+import {LogService} from './services/log-service';
 import {
     CreateAccountReq,
     CreateAccountRes,
     DefaultRes,
     createAccountReqSchema,
 } from './types/function-requests';
+import {SchemaUtils} from './utils/schema-utils';
 
 initializeApp();
 
 export const createAccount = onCall(
     {memory: '256MiB', timeoutSeconds: 30},
     async ({auth, data}): Promise<CreateAccountRes> => {
+        const fnName: string = 'createAccount';
         try {
-            const logger: LogService = new LogService('createAccount');
-            logger.info('Starting createAccount function');
-
-            const firestoreService: FirestoreService = new FirestoreService(
-                logger
-            );
+            const logger: LogService = new LogService(fnName);
+            logger.info(`Starting ${fnName} function`);
 
             if (!auth) {
-                const errorMsg: string = 'No auth object in createAccount';
+                const errorMsg: string = `No auth object in ${fnName}`;
 
                 logger.error(errorMsg);
                 return {errorMsg};
             }
 
-            const {error: schemaError, value: schemaValue} =
-                createAccountReqSchema.validate(data);
-            if (schemaError) {
-                const errorMsg: string = `createAccount request validation error, schema error: ${JSON.stringify(
-                    schemaError,
-                    null,
-                    2
-                )}, schemaValue: ${JSON.stringify(schemaValue, null, 2)}`;
-
-                logger.error(errorMsg);
-                return {errorMsg};
+            const rsp: {request: CreateAccountReq} | {errorMsg: string} =
+                new SchemaUtils(logger).validate<CreateAccountReq>(
+                    fnName,
+                    data,
+                    createAccountReqSchema
+                );
+            if ('errorMsg' in rsp) {
+                return rsp;
             }
 
-            const {email, displayName} = schemaValue as CreateAccountReq;
-            const uid: string = auth.uid;
-
-            const userCollectionRef: firestore.CollectionReference<
-                firestore.DocumentData,
-                firestore.DocumentData
-            > = firestore().collection(paths.userCollection);
-
-            try {
-                // Check if there's already a user with this uid
-                const currentDoc: DBUser = await firestoreService.read<DBUser>(
-                    userCollectionRef,
-                    uid
-                );
-
-                if (currentDoc) {
-                    const errorMsg: string = `User with uid ${uid} already exists`;
-
-                    logger.error(errorMsg);
-                    return {errorMsg, user: currentDoc};
-                }
-            } catch (_e) {
-                logger.debug(
-                    `No user exists with uid ${uid}, creating new one now...`
-                );
-            }
-
-            // Write user to firestore
-            const user: DBUser = {
-                uid,
-                displayName,
-                email,
-            };
-
-            await firestoreService.set(userCollectionRef, uid, user);
-
-            return {user};
+            return new CreateAccountHandler(logger).handle(
+                auth.uid,
+                rsp.request
+            );
         } catch (err) {
             return {
-                errorMsg: `Unexpected error in createAccount function, error: ${JSON.stringify(
+                errorMsg: `Unexpected error in ${fnName} function, error: ${JSON.stringify(
                     err,
                     null,
                     2
@@ -97,28 +58,22 @@ export const createAccount = onCall(
 export const deleteAccount = onCall(
     {memory: '256MiB', timeoutSeconds: 30},
     async ({auth}): Promise<DefaultRes> => {
+        const fnName: string = 'deleteAccount';
         try {
-            const logger: LogService = new LogService('deleteAccount');
-            logger.info('Starting deleteAccount function');
+            const logger: LogService = new LogService(fnName);
+            logger.info(`Starting ${fnName} function`);
 
             if (!auth) {
-                const errorMsg: string = 'No auth object in deleteAccount';
+                const errorMsg: string = `No auth object in ${fnName}`;
 
                 logger.error(errorMsg);
                 return {errorMsg};
             }
-            const uid: string = auth.uid;
 
-            // Delete user from firestore
-            await new FirestoreService(logger).delete(
-                firestore().collection(paths.userCollection),
-                uid
-            );
-
-            return {};
+            return new DeleteAccountHandler(logger).handle(auth.uid);
         } catch (err) {
             return {
-                errorMsg: `Unexpected error in deleteAccount function, error: ${JSON.stringify(
+                errorMsg: `Unexpected error in ${fnName} function, error: ${JSON.stringify(
                     err,
                     null,
                     2
@@ -127,3 +82,21 @@ export const deleteAccount = onCall(
         }
     }
 );
+
+export const onAuthDelete = user().onDelete(async user => {
+    const fnName: string = 'onAuthDelete';
+    try {
+        const logger: LogService = new LogService(fnName);
+        logger.info(`Starting ${fnName} function`);
+
+        return new DeleteAccountHandler(logger).handle(user.uid);
+    } catch (err) {
+        return {
+            errorMsg: `Unexpected error in ${fnName} function, error: ${JSON.stringify(
+                err,
+                null,
+                2
+            )}`,
+        };
+    }
+});

@@ -30,5 +30,6 @@ module.exports = {
         'max-len': 0,
         'require-jsdoc': 0,
         '@typescript-eslint/no-explicit-any': ['error'],
+        'arrow-parens': ['error', 'as-needed'],
     },
 };

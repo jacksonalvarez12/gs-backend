@@ -1,7 +1,7 @@
 import {CollectionReference, Timestamp} from 'firebase-admin/firestore';
-import {LogService} from '../log-service/log-service';
+import {LogService} from './log-service';
 
-export class FirestoreService {
+export class DbService {
     private logger: LogService;
 
     constructor(logger: LogService) {

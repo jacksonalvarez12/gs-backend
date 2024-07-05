@@ -1,4 +1,4 @@
-export type DBUser = {
+export type DbUser = {
     uid: string;
     displayName: string;
     email: string;
