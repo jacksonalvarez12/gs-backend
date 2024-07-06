@@ -1,4 +1,8 @@
-import {CollectionReference, Timestamp} from 'firebase-admin/firestore';
+import {
+    CollectionReference,
+    FieldValue,
+    Timestamp,
+} from 'firebase-admin/firestore';
 import {LogService} from './log-service';
 
 export class DbService {
@@ -15,12 +19,28 @@ export class DbService {
     ): Promise<void> {
         await collection
             .doc(documentId)
-            .set({...data, created: Timestamp.now()});
+            .set({...data, created: Timestamp.now(), updated: Timestamp.now()});
 
         this.logger.debug(
             `Set document ${documentId} in collection ${
                 collection.path
-            } with data; data: ${JSON.stringify(data, null, 2)}`
+            } with data: ${JSON.stringify(data, null, 2)}`
+        );
+    }
+
+    async update(
+        collection: CollectionReference,
+        documentId: string,
+        data: Record<string, unknown>
+    ): Promise<void> {
+        await collection
+            .doc(documentId)
+            .update({...data, updated: FieldValue.serverTimestamp()});
+
+        this.logger.debug(
+            `Update document ${documentId} in collection ${
+                collection.path
+            } with update: ${JSON.stringify(data, null, 2)}`
         );
     }
 

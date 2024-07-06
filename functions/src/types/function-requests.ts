@@ -20,3 +20,19 @@ export type CreateAccountRes = {
     user?: DbUser;
     errorMsg?: string;
 };
+
+export type JoinGroupReq = {
+    groupId: string;
+};
+
+export const joinGroupReqSchema = Joi.object({
+    groupId: Joi.string().required(),
+}).required();
+
+export type LeaveGroupReq = {
+    groupId: string;
+};
+
+export const leaveGroupReqSchema = Joi.object({
+    groupId: Joi.string().required(),
+}).required();

@@ -2,9 +2,11 @@ import {debug, error, info} from 'firebase-functions/logger';
 
 export class LogService {
     private fn: string;
+    uid: string;
 
-    constructor(fn: string) {
+    constructor(fn: string, uid?: string) {
         this.fn = fn;
+        this.uid = uid ?? '';
     }
 
     debug(message: string) {
@@ -20,6 +22,6 @@ export class LogService {
     }
 
     private constructMessage(message: string) {
-        return `[${this.fn}] ${message}`;
+        return `[${this.fn}]${this.uid ? ` (${this.uid})` : ''} ${message}`;
     }
 }
