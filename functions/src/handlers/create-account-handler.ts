@@ -23,7 +23,7 @@ export class CreateAccountHandler {
         const userCollectionRef: firestore.CollectionReference<
             firestore.DocumentData,
             firestore.DocumentData
-        > = firestore().collection(paths.userCollection);
+        > = firestore().collection(paths.usersCollection);
 
         try {
             // Check if there's already a user with this uid

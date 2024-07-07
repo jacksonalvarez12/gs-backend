@@ -4,7 +4,7 @@
         "lint": "eslint --ext .js,.ts .",
         "clean": "rm -rf bin",
         "build": "yarn clean && yarn lint && tsc",
-        "deploy": "yarn build && firebase deploy --only functions"
+        "deploy": "yarn build && firebase deploy"
     },
     "engines": {
         "node": "18"

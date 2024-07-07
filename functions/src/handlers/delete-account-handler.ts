@@ -14,7 +14,7 @@ export class DeleteAccountHandler {
     async handle(uid: string): Promise<DefaultRes> {
         // Delete user from firestore
         await this.dbService.delete(
-            firestore().collection(paths.userCollection),
+            firestore().collection(paths.usersCollection),
             uid
         );
 

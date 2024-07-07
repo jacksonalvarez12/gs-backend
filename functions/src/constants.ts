@@ -1,4 +1,4 @@
 export const paths = {
-    userCollection: 'users',
+    usersCollection: 'users',
     groupsCollection: 'groups',
 };
