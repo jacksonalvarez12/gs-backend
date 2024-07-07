@@ -13,6 +13,8 @@ import {
     JoinGroupReq,
     LeaveGroupReq,
     createAccountReqSchema,
+    joinGroupReqSchema,
+    leaveGroupReqSchema,
 } from './types/function-requests';
 import {SchemaUtils} from './utils/schema-utils';
 
@@ -127,7 +129,7 @@ export const joinGroup = onCall(
                 new SchemaUtils(logger).validate<JoinGroupReq>(
                     fnName,
                     data,
-                    createAccountReqSchema
+                    joinGroupReqSchema
                 );
             if ('errorMsg' in rsp) {
                 return rsp;
@@ -166,7 +168,7 @@ export const leaveGroup = onCall(
                 new SchemaUtils(logger).validate<LeaveGroupReq>(
                     fnName,
                     data,
-                    createAccountReqSchema
+                    leaveGroupReqSchema
                 );
             if ('errorMsg' in rsp) {
                 return rsp;
