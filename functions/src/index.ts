@@ -1,10 +1,11 @@
 import {initializeApp} from 'firebase-admin/app';
 import {user} from 'firebase-functions/v1/auth';
-import {onCall} from 'firebase-functions/v2/https';
+import {CallableOptions, onCall} from 'firebase-functions/v2/https';
 import {CreateAccountHandler} from './handlers/create-account-handler';
 import {DeleteAccountHandler} from './handlers/delete-account-handler';
 import {JoinGroupHandler} from './handlers/join-group-handler';
 import {LeaveGroupHandler} from './handlers/leave-group-handler';
+import {ProvideSpotifyAuthCodeHandler} from './handlers/provide-spotify-auth-code-handler';
 import {LogService} from './services/log-service';
 import {
     CreateAccountReq,
@@ -12,16 +13,23 @@ import {
     DefaultRes,
     JoinGroupReq,
     LeaveGroupReq,
+    ProvideSpotifyAuthCodeReq,
     createAccountReqSchema,
     joinGroupReqSchema,
     leaveGroupReqSchema,
+    provideSpotifyAuthCodeReqSchema,
 } from './types/function-requests';
 import {SchemaUtils} from './utils/schema-utils';
 
 initializeApp();
 
+const defaultCallableOptions: CallableOptions = {
+    memory: '256MiB',
+    timeoutSeconds: 30,
+};
+
 export const createAccount = onCall(
-    {memory: '256MiB', timeoutSeconds: 30},
+    defaultCallableOptions,
     async ({auth, data}): Promise<CreateAccountRes> => {
         const fnName: string = 'createAccount';
         try {
@@ -63,7 +71,7 @@ export const createAccount = onCall(
 );
 
 export const deleteAccount = onCall(
-    {memory: '256MiB', timeoutSeconds: 30},
+    defaultCallableOptions,
     async ({auth}): Promise<DefaultRes> => {
         const fnName: string = 'deleteAccount';
         try {
@@ -110,7 +118,7 @@ export const onAuthDelete = user().onDelete(async user => {
 });
 
 export const joinGroup = onCall(
-    {memory: '256MiB', timeoutSeconds: 30},
+    defaultCallableOptions,
     async ({auth, data}): Promise<DefaultRes> => {
         const fnName: string = 'joinGroup';
         try {
@@ -149,7 +157,7 @@ export const joinGroup = onCall(
 );
 
 export const leaveGroup = onCall(
-    {memory: '256MiB', timeoutSeconds: 30},
+    defaultCallableOptions,
     async ({auth, data}): Promise<DefaultRes> => {
         const fnName: string = 'leaveGroup';
         try {
@@ -175,6 +183,51 @@ export const leaveGroup = onCall(
             }
 
             return new LeaveGroupHandler(logger).handle(auth.uid, rsp.request);
+        } catch (err) {
+            return {
+                errorMsg: `Unexpected error in ${fnName} function, error: ${JSON.stringify(
+                    err,
+                    null,
+                    2
+                )}`,
+            };
+        }
+    }
+);
+
+export const provideSpotifyAuthCode = onCall(
+    defaultCallableOptions,
+    async ({auth, data}): Promise<DefaultRes> => {
+        const fnName: string = 'provideSpotifyAuthCode';
+        try {
+            const logger: LogService = new LogService(fnName);
+            logger.info(`Starting ${fnName} function`);
+
+            if (!auth) {
+                const errorMsg: string = `No auth object in ${fnName}`;
+
+                logger.error(errorMsg);
+                return {errorMsg};
+            }
+            logger.uid = auth.uid;
+
+            const rsp:
+                | {request: ProvideSpotifyAuthCodeReq}
+                | {errorMsg: string} = new SchemaUtils(
+                logger
+            ).validate<ProvideSpotifyAuthCodeReq>(
+                fnName,
+                data,
+                provideSpotifyAuthCodeReqSchema
+            );
+            if ('errorMsg' in rsp) {
+                return rsp;
+            }
+
+            return new ProvideSpotifyAuthCodeHandler(logger).handle(
+                auth.uid,
+                rsp.request
+            );
         } catch (err) {
             return {
                 errorMsg: `Unexpected error in ${fnName} function, error: ${JSON.stringify(

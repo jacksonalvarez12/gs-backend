@@ -36,3 +36,11 @@ export type LeaveGroupReq = {
 export const leaveGroupReqSchema = Joi.object({
     groupId: Joi.string().required(),
 }).required();
+
+export type ProvideSpotifyAuthCodeReq = {
+    authCode: string;
+};
+
+export const provideSpotifyAuthCodeReqSchema = Joi.object({
+    authCode: Joi.string().required(),
+}).required();
