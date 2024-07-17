@@ -1,11 +1,13 @@
 import {initializeApp} from 'firebase-admin/app';
 import {user} from 'firebase-functions/v1/auth';
 import {CallableOptions, onCall} from 'firebase-functions/v2/https';
+import {onSchedule} from 'firebase-functions/v2/scheduler';
 import {CreateAccountHandler} from './handlers/create-account-handler';
 import {DeleteAccountHandler} from './handlers/delete-account-handler';
 import {JoinGroupHandler} from './handlers/join-group-handler';
 import {LeaveGroupHandler} from './handlers/leave-group-handler';
 import {ProvideSpotifyAuthCodeHandler} from './handlers/provide-spotify-auth-code-handler';
+import {SchedulerHandler} from './handlers/scheduler-handler';
 import {LogService} from './services/log-service';
 import {
     CreateAccountReq,
@@ -32,8 +34,8 @@ export const createAccount = onCall(
     defaultCallableOptions,
     async ({auth, data}): Promise<CreateAccountRes> => {
         const fnName: string = 'createAccount';
+        const logger: LogService = new LogService(fnName);
         try {
-            const logger: LogService = new LogService(fnName);
             logger.info(`Starting ${fnName} function`);
 
             if (!auth) {
@@ -59,13 +61,14 @@ export const createAccount = onCall(
                 rsp.request
             );
         } catch (err) {
-            return {
-                errorMsg: `Unexpected error in ${fnName} function, error: ${JSON.stringify(
-                    err,
-                    null,
-                    2
-                )}`,
-            };
+            const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
+                err,
+                null,
+                2
+            )}`;
+
+            logger.error(errorMsg);
+            return {errorMsg};
         }
     }
 );
@@ -74,8 +77,8 @@ export const deleteAccount = onCall(
     defaultCallableOptions,
     async ({auth}): Promise<DefaultRes> => {
         const fnName: string = 'deleteAccount';
+        const logger: LogService = new LogService(fnName);
         try {
-            const logger: LogService = new LogService(fnName);
             logger.info(`Starting ${fnName} function`);
 
             if (!auth) {
@@ -88,32 +91,34 @@ export const deleteAccount = onCall(
 
             return new DeleteAccountHandler(logger).handle(auth.uid);
         } catch (err) {
-            return {
-                errorMsg: `Unexpected error in ${fnName} function, error: ${JSON.stringify(
-                    err,
-                    null,
-                    2
-                )}`,
-            };
+            const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
+                err,
+                null,
+                2
+            )}`;
+
+            logger.error(errorMsg);
+            return {errorMsg};
         }
     }
 );
 
 export const onAuthDelete = user().onDelete(async user => {
     const fnName: string = 'onAuthDelete';
+    const logger: LogService = new LogService(fnName, user.uid);
     try {
-        const logger: LogService = new LogService(fnName, user.uid);
         logger.info(`Starting ${fnName} function`);
 
         return new DeleteAccountHandler(logger).handle(user.uid);
     } catch (err) {
-        return {
-            errorMsg: `Unexpected error in ${fnName} function, error: ${JSON.stringify(
-                err,
-                null,
-                2
-            )}`,
-        };
+        const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
+            err,
+            null,
+            2
+        )}`;
+
+        logger.error(errorMsg);
+        return {errorMsg};
     }
 });
 
@@ -121,8 +126,8 @@ export const joinGroup = onCall(
     defaultCallableOptions,
     async ({auth, data}): Promise<DefaultRes> => {
         const fnName: string = 'joinGroup';
+        const logger: LogService = new LogService(fnName);
         try {
-            const logger: LogService = new LogService(fnName);
             logger.info(`Starting ${fnName} function`);
 
             if (!auth) {
@@ -145,13 +150,14 @@ export const joinGroup = onCall(
 
             return new JoinGroupHandler(logger).handle(auth.uid, rsp.request);
         } catch (err) {
-            return {
-                errorMsg: `Unexpected error in ${fnName} function, error: ${JSON.stringify(
-                    err,
-                    null,
-                    2
-                )}`,
-            };
+            const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
+                err,
+                null,
+                2
+            )}`;
+
+            logger.error(errorMsg);
+            return {errorMsg};
         }
     }
 );
@@ -160,8 +166,8 @@ export const leaveGroup = onCall(
     defaultCallableOptions,
     async ({auth, data}): Promise<DefaultRes> => {
         const fnName: string = 'leaveGroup';
+        const logger: LogService = new LogService(fnName);
         try {
-            const logger: LogService = new LogService(fnName);
             logger.info(`Starting ${fnName} function`);
 
             if (!auth) {
@@ -184,13 +190,14 @@ export const leaveGroup = onCall(
 
             return new LeaveGroupHandler(logger).handle(auth.uid, rsp.request);
         } catch (err) {
-            return {
-                errorMsg: `Unexpected error in ${fnName} function, error: ${JSON.stringify(
-                    err,
-                    null,
-                    2
-                )}`,
-            };
+            const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
+                err,
+                null,
+                2
+            )}`;
+
+            logger.error(errorMsg);
+            return {errorMsg};
         }
     }
 );
@@ -199,8 +206,8 @@ export const provideSpotifyAuthCode = onCall(
     defaultCallableOptions,
     async ({auth, data}): Promise<DefaultRes> => {
         const fnName: string = 'provideSpotifyAuthCode';
+        const logger: LogService = new LogService(fnName);
         try {
-            const logger: LogService = new LogService(fnName);
             logger.info(`Starting ${fnName} function`);
 
             if (!auth) {
@@ -229,13 +236,32 @@ export const provideSpotifyAuthCode = onCall(
                 rsp.request
             );
         } catch (err) {
-            return {
-                errorMsg: `Unexpected error in ${fnName} function, error: ${JSON.stringify(
-                    err,
-                    null,
-                    2
-                )}`,
-            };
+            const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
+                err,
+                null,
+                2
+            )}`;
+
+            logger.error(errorMsg);
+            return {errorMsg};
         }
     }
 );
+
+export const scheduler = onSchedule('0 * * * *', async () => {
+    const fnName: string = 'scheduler';
+    const logger: LogService = new LogService(fnName);
+    try {
+        logger.info(`Starting ${fnName} function`);
+
+        return new SchedulerHandler(logger).handle();
+    } catch (err) {
+        logger.error(
+            `Unexpected error in ${fnName} function, error: ${JSON.stringify(
+                err,
+                null,
+                2
+            )}`
+        );
+    }
+});

@@ -74,6 +74,37 @@ export class DbService {
         return data;
     }
 
+    async readCollection<T>(
+        collection: CollectionReference,
+        includeTimestamps?: boolean
+    ): Promise<T[]> {
+        const rst: FirebaseFirestore.QuerySnapshot<
+            FirebaseFirestore.DocumentData,
+            FirebaseFirestore.DocumentData
+        > = await collection.get();
+
+        const results: T[] = [];
+        for (const doc of rst.docs) {
+            const data: T = doc.data() as T;
+            if (!includeTimestamps) {
+                if ((data as Record<string, unknown>)['created']) {
+                    delete (data as Record<string, unknown>)['created'];
+                }
+                if ((data as Record<string, unknown>)['lastUpdated']) {
+                    delete (data as Record<string, unknown>)['lastUpdated'];
+                }
+            }
+
+            results.push(data);
+        }
+
+        this.logger.debug(
+            `Read ${rst.docs.length} docs in collection ${collection.path}`
+        );
+
+        return results;
+    }
+
     async delete(
         collection: CollectionReference,
         documentId: string
