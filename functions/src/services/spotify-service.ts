@@ -62,9 +62,7 @@ export class SpotifyService {
 
     async refreshAccessTokensByRefreshToken(
         refreshToken: string
-    ): Promise<
-        {accessToken: string; refreshToken: string} | {errorMsg: string}
-    > {
+    ): Promise<{accessToken: string} | {errorMsg: string}> {
         // Get access and refresh token from spotify
         const headers: Record<string, string> = {
             'content-type': 'application/x-www-form-urlencoded',
@@ -93,7 +91,7 @@ export class SpotifyService {
 
         const json: Record<string, unknown> = await rsp.json();
 
-        if (!json.access_token || !json.refresh_token) {
+        if (!json.access_token) {
             const errorMsg: string = `Spotify request access token by refresh token missing access_token or refresh_token: ${JSON.stringify(
                 json,
                 null,
@@ -106,7 +104,6 @@ export class SpotifyService {
 
         return {
             accessToken: json.access_token as string,
-            refreshToken: json.refresh_token as string,
         };
     }
 }

@@ -6,7 +6,7 @@ import {paths} from '../constants';
 import {DbService} from '../services/db-service';
 import {LogService} from '../services/log-service';
 import {SpotifyService} from '../services/spotify-service';
-import {DbUser, DbUserAccessTokenUpdate} from '../types/db-user';
+import {DbUser, DbUserUpdate} from '../types/db-user';
 import {Group} from '../types/group';
 
 export class SchedulerHandler {
@@ -64,9 +64,7 @@ export class SchedulerHandler {
 
             try {
                 // Refresh user's tokens
-                const response:
-                    | {accessToken: string; refreshToken: string}
-                    | {errorMsg: string} =
+                const response: {accessToken: string} | {errorMsg: string} =
                     await this.spotifyService.refreshAccessTokensByRefreshToken(
                         user.refreshToken
                     );
@@ -75,10 +73,9 @@ export class SchedulerHandler {
                     continue;
                 }
 
-                const updateObj: DbUserAccessTokenUpdate = {
+                const updateObj: DbUserUpdate = {
                     accessToken: response.accessToken,
                     tokensLastUpdated: FieldValue.serverTimestamp(),
-                    refreshToken: response.refreshToken,
                 };
 
                 await this.dbService.update(
@@ -93,7 +90,7 @@ export class SchedulerHandler {
                     }, error: ${JSON.stringify(err, null, 2)}`
                 );
 
-                const updateObj: DbUserAccessTokenUpdate = {
+                const updateObj: DbUserUpdate = {
                     accessToken: '',
                     tokensLastUpdated: FieldValue.serverTimestamp(),
                     refreshToken: '',

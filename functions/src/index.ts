@@ -56,7 +56,7 @@ export const createAccount = onCall(
                 return rsp;
             }
 
-            return new CreateAccountHandler(logger).handle(
+            return await new CreateAccountHandler(logger).handle(
                 auth.uid,
                 rsp.request
             );
@@ -89,7 +89,7 @@ export const deleteAccount = onCall(
             }
             logger.uid = auth.uid;
 
-            return new DeleteAccountHandler(logger).handle(auth.uid);
+            return await new DeleteAccountHandler(logger).handle(auth.uid);
         } catch (err) {
             const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
                 err,
@@ -109,7 +109,7 @@ export const onAuthDelete = user().onDelete(async user => {
     try {
         logger.info(`Starting ${fnName} function`);
 
-        return new DeleteAccountHandler(logger).handle(user.uid);
+        return await new DeleteAccountHandler(logger).handle(user.uid);
     } catch (err) {
         const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
             err,
@@ -148,7 +148,10 @@ export const joinGroup = onCall(
                 return rsp;
             }
 
-            return new JoinGroupHandler(logger).handle(auth.uid, rsp.request);
+            return await new JoinGroupHandler(logger).handle(
+                auth.uid,
+                rsp.request
+            );
         } catch (err) {
             const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
                 err,
@@ -188,7 +191,10 @@ export const leaveGroup = onCall(
                 return rsp;
             }
 
-            return new LeaveGroupHandler(logger).handle(auth.uid, rsp.request);
+            return await new LeaveGroupHandler(logger).handle(
+                auth.uid,
+                rsp.request
+            );
         } catch (err) {
             const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
                 err,
@@ -231,7 +237,7 @@ export const provideSpotifyAuthCode = onCall(
                 return rsp;
             }
 
-            return new ProvideSpotifyAuthCodeHandler(logger).handle(
+            return await new ProvideSpotifyAuthCodeHandler(logger).handle(
                 auth.uid,
                 rsp.request
             );
@@ -254,7 +260,7 @@ export const scheduler = onSchedule('0 * * * *', async () => {
     try {
         logger.info(`Starting ${fnName} function`);
 
-        return new SchedulerHandler(logger).handle();
+        return await new SchedulerHandler(logger).handle();
     } catch (err) {
         logger.error(
             `Unexpected error in ${fnName} function, error: ${JSON.stringify(

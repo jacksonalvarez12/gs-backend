@@ -9,8 +9,8 @@ export type DbUser = {
     refreshToken?: string;
 };
 
-export type DbUserAccessTokenUpdate = {
-    accessToken: string;
-    tokensLastUpdated: FieldValue;
-    refreshToken: string;
+export type DbUserUpdate = {
+    accessToken?: string;
+    tokensLastUpdated?: FieldValue;
+    refreshToken?: string;
 };
