@@ -254,20 +254,27 @@ export const provideSpotifyAuthCode = onCall(
     }
 );
 
-export const scheduler = onSchedule('0 * * * *', async () => {
-    const fnName: string = 'scheduler';
-    const logger: LogService = new LogService(fnName);
-    try {
-        logger.info(`Starting ${fnName} function`);
+export const scheduler = onSchedule(
+    {
+        schedule: '0 * * * *',
+        memory: defaultCallableOptions.memory,
+        timeoutSeconds: 180,
+    },
+    async () => {
+        const fnName: string = 'scheduler';
+        const logger: LogService = new LogService(fnName);
+        try {
+            logger.info(`Starting ${fnName} function`);
 
-        return await new SchedulerHandler(logger).handle();
-    } catch (err) {
-        logger.error(
-            `Unexpected error in ${fnName} function, error: ${JSON.stringify(
-                err,
-                null,
-                2
-            )}`
-        );
+            return await new SchedulerHandler(logger).handle();
+        } catch (err) {
+            logger.error(
+                `Unexpected error in ${fnName} function, error: ${JSON.stringify(
+                    err,
+                    null,
+                    2
+                )}`
+            );
+        }
     }
-});
+);
