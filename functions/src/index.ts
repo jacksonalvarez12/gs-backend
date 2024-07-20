@@ -2,13 +2,11 @@ import {initializeApp} from 'firebase-admin/app';
 import {user} from 'firebase-functions/v1/auth';
 import {CallableOptions, onCall} from 'firebase-functions/v2/https';
 import {onSchedule} from 'firebase-functions/v2/scheduler';
-import {CreateAccountHandler} from './handlers/create-account-handler';
-import {DeleteAccountHandler} from './handlers/delete-account-handler';
-import {JoinGroupHandler} from './handlers/join-group-handler';
-import {LeaveGroupHandler} from './handlers/leave-group-handler';
-import {ProvideSpotifyAuthCodeHandler} from './handlers/provide-spotify-auth-code-handler';
-import {SchedulerHandler} from './handlers/scheduler-handler';
+import {GroupService} from './services/group-service';
 import {LogService} from './services/log-service';
+import {SchedulerService} from './services/scheduler-service';
+import {SpotifyService} from './services/spotify-service';
+import {UserService} from './services/user-service';
 import {
     CreateAccountReq,
     CreateAccountRes,
@@ -56,9 +54,10 @@ export const createAccount = onCall(
                 return rsp;
             }
 
-            return await new CreateAccountHandler(logger).handle(
+            return await new UserService(logger).createAccount(
                 auth.uid,
-                rsp.request
+                rsp.request.email,
+                rsp.request.displayName
             );
         } catch (err) {
             const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
@@ -89,7 +88,7 @@ export const deleteAccount = onCall(
             }
             logger.uid = auth.uid;
 
-            return await new DeleteAccountHandler(logger).handle(auth.uid);
+            return await new UserService(logger).deleteAccount(auth.uid);
         } catch (err) {
             const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
                 err,
@@ -109,7 +108,7 @@ export const onAuthDelete = user().onDelete(async user => {
     try {
         logger.info(`Starting ${fnName} function`);
 
-        return await new DeleteAccountHandler(logger).handle(user.uid);
+        return await new UserService(logger).deleteAccount(user.uid);
     } catch (err) {
         const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
             err,
@@ -148,9 +147,9 @@ export const joinGroup = onCall(
                 return rsp;
             }
 
-            return await new JoinGroupHandler(logger).handle(
+            return await new GroupService(logger).joinGroup(
                 auth.uid,
-                rsp.request
+                rsp.request.groupId
             );
         } catch (err) {
             const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
@@ -191,9 +190,9 @@ export const leaveGroup = onCall(
                 return rsp;
             }
 
-            return await new LeaveGroupHandler(logger).handle(
+            return await new GroupService(logger).leaveGroup(
                 auth.uid,
-                rsp.request
+                rsp.request.groupId
             );
         } catch (err) {
             const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
@@ -237,9 +236,9 @@ export const provideSpotifyAuthCode = onCall(
                 return rsp;
             }
 
-            return await new ProvideSpotifyAuthCodeHandler(logger).handle(
+            return await new SpotifyService(logger).provideSpotifyAuthCode(
                 auth.uid,
-                rsp.request
+                rsp.request.authCode
             );
         } catch (err) {
             const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
@@ -266,7 +265,7 @@ export const scheduler = onSchedule(
         try {
             logger.info(`Starting ${fnName} function`);
 
-            return await new SchedulerHandler(logger).handle();
+            return await new SchedulerService(logger).hourly();
         } catch (err) {
             logger.error(
                 `Unexpected error in ${fnName} function, error: ${JSON.stringify(

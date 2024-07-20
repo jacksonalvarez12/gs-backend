@@ -14,15 +14,27 @@ export class DbService {
 
     async set(
         collection: CollectionReference,
-        documentId: string,
+        documentId: string | false,
         data: Record<string, unknown>
     ): Promise<void> {
-        await collection
-            .doc(documentId)
-            .set({...data, created: Timestamp.now(), updated: Timestamp.now()});
+        if (documentId === false) {
+            await collection.add({
+                ...data,
+                created: Timestamp.now(),
+                updated: Timestamp.now(),
+            });
+        } else {
+            await collection
+                .doc(documentId)
+                .set({
+                    ...data,
+                    created: Timestamp.now(),
+                    updated: Timestamp.now(),
+                });
+        }
 
         this.logger.debug(
-            `Set document ${documentId} in collection ${
+            `Set document ${documentId || '{randomId}'} in collection ${
                 collection.path
             } with data: ${JSON.stringify(data, null, 2)}`
         );

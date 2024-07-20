@@ -1,5 +1,5 @@
 import Joi = require('joi');
-import {DbUser} from './db-user';
+import {DbUser} from './db';
 
 export type DefaultRes = {
     errorMsg?: string;
