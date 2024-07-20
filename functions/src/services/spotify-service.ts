@@ -174,11 +174,18 @@ export class SpotifyService {
             {
                 headers,
                 body: new URLSearchParams(body),
-                method: 'POST',
+                method: 'GET',
             }
         );
-
         const json: Record<string, unknown> = await rsp.json();
+
+        if (rsp.status !== 200) {
+            this.logger.error(
+                `Spotify get tracks played in the last hour failed: ${
+                    rsp.status
+                }, ${rsp.statusText}, json: ${JSON.stringify(json, null, 2)}`
+            );
+        }
 
         const trackStreams: SpotifyTrackStream[] = (
             json.items as Record<string, unknown>[]

@@ -21,14 +21,18 @@ export class DataScrapingService {
     async scrapeMultipleUsersData(
         users: DbUser[],
         currentHour: number
-    ): Promise<unknown> {
-        return Promise.allSettled(
-            users.flatMap(user => this.scrapeRecentData(user, currentHour))
-        );
+    ): Promise<void> {
+        for (const user of users) {
+            await this.scrapeRecentData(user, currentHour);
+        }
     }
 
     async scrapeRecentData(user: DbUser, hour: number): Promise<void> {
         try {
+            this.logger.debug(
+                `Scraping recent data for user ${user.uid} at hour ${hour}...`
+            );
+
             // Assume user's token is up to date
             const recentStreams: SpotifyTrackStream[] =
                 await this.spotifyService.getTracksPlayedInTheLastHour(
@@ -37,6 +41,9 @@ export class DataScrapingService {
                     hour
                 );
 
+            this.logger.info(
+                `Scraped ${recentStreams.length} tracks for user ${user.uid} at hour ${hour}`
+            );
             if (recentStreams.length > 0) {
                 const doc: HourlyScrape = {
                     streams: recentStreams,
@@ -55,6 +62,8 @@ export class DataScrapingService {
                     false,
                     doc
                 );
+
+                this.logger.debug(`Uploaded scraped data for user ${user.uid}`);
             }
         } catch (err) {
             this.logger.error(
