@@ -3,6 +3,7 @@ import {DateTime} from 'luxon';
 import {constants, paths} from '../constants';
 import {DbUser, HourlyScrape} from '../types/db';
 import {SpotifyTrackStream} from '../types/spotify';
+import {ErrorUtils} from '../utils/error-utils';
 import {DbService} from './db-service';
 import {LogService} from './log-service';
 import {SpotifyService} from './spotify-service';
@@ -69,7 +70,7 @@ export class DataScrapingService {
             this.logger.error(
                 `Unexpected error in scrapeRecentData function for user ${
                     user.uid
-                }, error: ${JSON.stringify(err, null, 2)}`
+                } ${ErrorUtils.dsc(err)}`
             );
         }
     }

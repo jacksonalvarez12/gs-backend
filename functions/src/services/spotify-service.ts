@@ -170,22 +170,24 @@ export class SpotifyService {
         };
 
         const rsp: Response = await fetch(
-            'https://api.spotify.com/v1/me/player/recently-played',
+            `https://api.spotify.com/v1/me/player/recently-played?${new URLSearchParams(
+                body
+            ).toString()}`,
             {
                 headers,
-                body: new URLSearchParams(body),
                 method: 'GET',
             }
         );
-        const json: Record<string, unknown> = await rsp.json();
 
         if (rsp.status !== 200) {
+            const text: string = await rsp.text();
             this.logger.error(
-                `Spotify get tracks played in the last hour failed: ${
-                    rsp.status
-                }, ${rsp.statusText}, json: ${JSON.stringify(json, null, 2)}`
+                `Spotify get tracks played in the last hour failed: ${rsp.status}, ${rsp.statusText}, text: ${text}`
             );
+            return [];
         }
+
+        const json: Record<string, unknown> = await rsp.json();
 
         const trackStreams: SpotifyTrackStream[] = (
             json.items as Record<string, unknown>[]

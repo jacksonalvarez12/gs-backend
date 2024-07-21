@@ -19,6 +19,7 @@ import {
     leaveGroupReqSchema,
     provideSpotifyAuthCodeReqSchema,
 } from './types/function-requests';
+import {ErrorUtils} from './utils/error-utils';
 import {SchemaUtils} from './utils/schema-utils';
 
 initializeApp();
@@ -60,10 +61,8 @@ export const createAccount = onCall(
                 rsp.request.displayName
             );
         } catch (err) {
-            const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
-                err,
-                null,
-                2
+            const errorMsg: string = `Unexpected error in ${fnName} function ${ErrorUtils.dsc(
+                err
             )}`;
 
             logger.error(errorMsg);
@@ -90,10 +89,8 @@ export const deleteAccount = onCall(
 
             return await new UserService(logger).deleteAccount(auth.uid);
         } catch (err) {
-            const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
-                err,
-                null,
-                2
+            const errorMsg: string = `Unexpected error in ${fnName} function ${ErrorUtils.dsc(
+                err
             )}`;
 
             logger.error(errorMsg);
@@ -110,10 +107,8 @@ export const onAuthDelete = user().onDelete(async user => {
 
         return await new UserService(logger).deleteAccount(user.uid);
     } catch (err) {
-        const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
-            err,
-            null,
-            2
+        const errorMsg: string = `Unexpected error in ${fnName} function ${ErrorUtils.dsc(
+            err
         )}`;
 
         logger.error(errorMsg);
@@ -152,10 +147,8 @@ export const joinGroup = onCall(
                 rsp.request.groupId
             );
         } catch (err) {
-            const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
-                err,
-                null,
-                2
+            const errorMsg: string = `Unexpected error in ${fnName} function ${ErrorUtils.dsc(
+                err
             )}`;
 
             logger.error(errorMsg);
@@ -195,10 +188,8 @@ export const leaveGroup = onCall(
                 rsp.request.groupId
             );
         } catch (err) {
-            const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
-                err,
-                null,
-                2
+            const errorMsg: string = `Unexpected error in ${fnName} function ${ErrorUtils.dsc(
+                err
             )}`;
 
             logger.error(errorMsg);
@@ -241,10 +232,8 @@ export const provideSpotifyAuthCode = onCall(
                 rsp.request.authCode
             );
         } catch (err) {
-            const errorMsg: string = `Unexpected error in ${fnName} function, error: ${JSON.stringify(
-                err,
-                null,
-                2
+            const errorMsg: string = `Unexpected error in ${fnName} function ${ErrorUtils.dsc(
+                err
             )}`;
 
             logger.error(errorMsg);
@@ -268,11 +257,7 @@ export const scheduler = onSchedule(
             return await new SchedulerService(logger).hourly();
         } catch (err) {
             logger.error(
-                `Unexpected error in ${fnName} function, error: ${JSON.stringify(
-                    err,
-                    null,
-                    2
-                )}`
+                `Unexpected error in ${fnName} function ${ErrorUtils.dsc(err)}`
             );
         }
     }

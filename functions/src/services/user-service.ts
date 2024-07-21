@@ -3,6 +3,7 @@ import {getAuth} from 'firebase-admin/auth';
 import {paths} from '../constants';
 import {DbUser} from '../types/db';
 import {CreateAccountRes, DefaultRes} from '../types/function-requests';
+import {ErrorUtils} from '../utils/error-utils';
 import {DbService} from './db-service';
 import {LogService} from './log-service';
 
@@ -76,10 +77,8 @@ export class UserService {
             );
         } catch (err) {
             this.logger.error(
-                `Error throw while reading users collection in deleteUsersWithoutAuth, error: ${JSON.stringify(
-                    err,
-                    null,
-                    2
+                `Error throw while reading users collection in deleteUsersWithoutAuth ${ErrorUtils.dsc(
+                    err
                 )}`
             );
         }
@@ -99,14 +98,14 @@ export class UserService {
                         this.logger.error(
                             `Error throw while deleting user for having no auth, id: ${
                                 user.uid
-                            }, error: ${JSON.stringify(err, null, 2)}`
+                            } ${ErrorUtils.dsc(err)}`
                         );
                     }
                 } else {
                     this.logger.error(
                         `Error throw while getting auth for user, id: ${
                             user.uid
-                        }, error: ${JSON.stringify(err, null, 2)}`
+                        } ${ErrorUtils.dsc(err)}`
                     );
                 }
             }

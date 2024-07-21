@@ -3,6 +3,7 @@ import {FieldValue} from 'firebase-admin/firestore';
 import {paths} from '../constants';
 import {DbUser, Group, GroupUpdate} from '../types/db';
 import {DefaultRes} from '../types/function-requests';
+import {ErrorUtils} from '../utils/error-utils';
 import {DbService} from './db-service';
 import {LogService} from './log-service';
 
@@ -57,10 +58,8 @@ export class GroupService {
             );
         } catch (err) {
             this.logger.error(
-                `Error throw while reading users collection in removeNonexistentMembersFromGroups, error: ${JSON.stringify(
-                    err,
-                    null,
-                    2
+                `Error throw while reading users collection in removeNonexistentMembersFromGroups ${ErrorUtils.dsc(
+                    err
                 )}`
             );
         }
@@ -72,10 +71,8 @@ export class GroupService {
             );
         } catch (err) {
             this.logger.error(
-                `Error throw while reading groups collection in refreshAllTokens, error: ${JSON.stringify(
-                    err,
-                    null,
-                    2
+                `Error throw while reading groups collection in refreshAllTokens ${ErrorUtils.dsc(
+                    err
                 )}`
             );
         }
@@ -98,7 +95,7 @@ export class GroupService {
                     this.logger.error(
                         `Error throw while removing members from group, id: ${
                             group.groupId
-                        }, error: ${JSON.stringify(err, null, 2)}`
+                        } ${ErrorUtils.dsc(err)}`
                     );
                 }
             }
@@ -117,7 +114,7 @@ export class GroupService {
                     this.logger.error(
                         `Error throw while removing group, id: ${
                             group.groupId
-                        }, error: ${JSON.stringify(err, null, 2)}`
+                        } ${ErrorUtils.dsc(err)}`
                     );
                 }
             }

@@ -3,6 +3,7 @@ import {FieldValue} from 'firebase-admin/firestore';
 import {DateTime} from 'luxon';
 import {constants, paths} from '../constants';
 import {DbUser, DbUserUpdate} from '../types/db';
+import {ErrorUtils} from '../utils/error-utils';
 import {DataScrapingService} from './data-scaping-service';
 import {DbService} from './db-service';
 import {GroupService} from './group-service';
@@ -57,10 +58,8 @@ export class SchedulerService {
             );
         } catch (err) {
             this.logger.error(
-                `Error throw while reading users collection in refreshAllTokens, error: ${JSON.stringify(
-                    err,
-                    null,
-                    2
+                `Error throw while reading users collection in refreshAllTokens ${ErrorUtils.dsc(
+                    err
                 )}`
             );
         }
@@ -103,7 +102,7 @@ export class SchedulerService {
                 this.logger.error(
                     `Error throw while refreshing tokens for user ${
                         user.uid
-                    }, error: ${JSON.stringify(err, null, 2)}`
+                    } ${ErrorUtils.dsc(err)}`
                 );
 
                 const updateObj: DbUserUpdate = {
@@ -123,7 +122,7 @@ export class SchedulerService {
                     this.logger.error(
                         `Error throw while removing tokens for user ${
                             user.uid
-                        }, error: ${JSON.stringify(err, null, 2)}`
+                        } ${ErrorUtils.dsc(err)}`
                     );
                 }
             }
